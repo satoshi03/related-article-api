@@ -55,9 +55,14 @@ func (a *Article) makeKey(siteID string, articleID int) string {
 func GetArticleInfo(ctx context.Context, index Index, siteID string) []Article {
 	var key string
 	articles := make([]Article, 0, len(index))
-	for _, ai := range index {
+	for i, ai := range index {
 		// XXX: redisへの問い合わせ回数が増えるのでmgetにしたほうがいい
 		//      redigoだとあんまいい感じできないっぽい
+		// 最大数取得したらループを抜ける
+		// TODO: サイトごとに設定できるようにしたほうがいいかも
+		if i >= common.MaxArticleLength {
+			break
+		}
 		var article Article
 		key = article.makeKey(siteID, ai.ID)
 		redis.GetPackedValue(ctx, common.CtxRedisKey, key, &article)
