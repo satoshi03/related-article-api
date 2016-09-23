@@ -8,5 +8,5 @@ const (
 	MaxArticleLength = 10
 
 	// Jsonp Call Back
-	JsonpNameSpace = `window.yoxul.related_articles`
+	JsonpNameSpace = `relatedArticles`
 )

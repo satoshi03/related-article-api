@@ -8,6 +8,7 @@ import (
 	"github.com/satoshi03/go/redis"
 
 	"github.com/satoshi03/related-article-api/common"
+	"github.com/satoshi03/related-article-api/utils"
 )
 
 type Index []Element
@@ -28,9 +29,13 @@ func (i *Index) makeKey(siteID, articleID string) string {
 	return fmt.Sprintf("index:%s:%s", siteID, articleID)
 }
 
-func GetIndexRelated(ctx context.Context, siteID, articleID string) *Index {
+func GetIndexRelated(ctx context.Context, siteID, articleURL string) *Index {
 	var index Index
-	key := index.makeKey(siteID, articleID)
+	if articleURL == "" {
+		return &index
+	}
+	articleURLHex := utils.ToMd5Hex(articleURL)
+	key := index.makeKey(siteID, articleURLHex)
 	out, err := redis.GetPackedValue(ctx, common.CtxRedisKey, key, &index)
 	if err != nil {
 		return &index

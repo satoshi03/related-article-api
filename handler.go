@@ -40,8 +40,16 @@ func articleHandler(ctx context.Context, w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	// referからURLを取得
+	referer := r.Referer()
+	if referer == "" {
+		utils.Write404Response(w, map[string]interface{}{"message": "referer url not found"})
+		return
+	}
+	referer, _ = utils.NormalizeURL(referer)
+
 	// Get Articles related with designated article
-	articles := getArticles(ctx, siteID, articleID)
+	articles := getArticles(ctx, siteID, articleID, referer)
 
 	// Make Response
 	resp := makeResponse(articles)
@@ -50,9 +58,9 @@ func articleHandler(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	fun(w, resp, 200)
 }
 
-func getArticles(ctx context.Context, siteID, articleID string) []article.Article {
+func getArticles(ctx context.Context, siteID, articleID, referer string) []article.Article {
 	// Get Related Artcile
-	index := article.GetIndexRelated(ctx, siteID, articleID)
+	index := article.GetIndexRelated(ctx, siteID, referer)
 	if len(*index) < common.MinArticleLength {
 		index = article.GetIndexRanking(ctx, siteID)
 	}
