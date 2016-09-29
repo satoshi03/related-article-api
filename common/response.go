@@ -1,4 +1,4 @@
-package utils
+package common
 
 import (
 	"bytes"
@@ -6,8 +6,6 @@ import (
 	"net/http"
 
 	"github.com/pquerna/ffjson/ffjson"
-
-	"github.com/satoshi03/related-article-api/common"
 )
 
 func Write404Response(w http.ResponseWriter, msg map[string]interface{}) {
@@ -29,5 +27,15 @@ func WriteJsonpResponse(w http.ResponseWriter, msg map[string]interface{}, statu
 
 	jsonBuffer := new(bytes.Buffer)
 	ffjson.NewEncoder(jsonBuffer).Encode(msg)
-	w.Write([]byte(fmt.Sprintf("%s(%s)", common.JsonpNameSpace, jsonBuffer.String())))
+	w.Write([]byte(fmt.Sprintf("%s(%s)", JsonpNameSpace, jsonBuffer.String())))
+}
+
+type ResponseWriter func(W http.ResponseWriter, resp map[string]interface{}, statusCode int)
+
+func JsonpWriter(w http.ResponseWriter, resp map[string]interface{}, statusCode int) {
+	WriteJsonpResponse(w, resp, statusCode)
+}
+
+func JsonWriter(w http.ResponseWriter, resp map[string]interface{}, statusCode int) {
+	WriteResponse(w, resp, statusCode)
 }

@@ -32,7 +32,5 @@ func main() {
 	defer fluent.Close(ctx, consts.CtxFluentKey)
 
 	kami.Context = ctx
-	kami.Get("/v1/ra/json", articleJsonHandler)
-	kami.Get("/v1/ra/jsonp", articleJsonpHandler)
 	kami.Serve()
 }
