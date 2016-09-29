@@ -1,6 +1,7 @@
 package article
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/guregu/kami"
@@ -62,7 +63,7 @@ func makeResponse(articles []Article) map[string]interface{} {
 	for i, ar := range articles {
 		ai := map[string]interface{}{
 			"title":     ar.Title,
-			"url":       ar.URL,
+			"url":       makeRedirectURL(ar.URL),
 			"icon_url":  ar.IconURL,
 			"image_url": ar.ImageURL,
 			"index":     i,
@@ -72,6 +73,11 @@ func makeResponse(articles []Article) map[string]interface{} {
 	return map[string]interface{}{
 		"articles": ais,
 	}
+}
+
+// backendでやったほうがいいかも
+func makeRedirectURL(s string) string {
+	return fmt.Sprintf("%s/v1/page?redirect_to=%s", common.BASE_URL, s)
 }
 
 func InitHandler() {
