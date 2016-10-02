@@ -18,6 +18,7 @@ type Element struct {
 }
 
 type Article struct {
+	SiteID   int    `msgpack:"site_id"`
 	URL      string `msgpack:"url"`
 	Title    string `msgpack:"title"`
 	IconURL  string `msgpack:"icon_url"`

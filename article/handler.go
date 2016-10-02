@@ -63,7 +63,7 @@ func makeResponse(articles []Article) map[string]interface{} {
 	for i, ar := range articles {
 		ai := map[string]interface{}{
 			"title":     ar.Title,
-			"url":       makeRedirectURL(ar.URL),
+			"url":       makeRedirectURL(ar),
 			"icon_url":  ar.IconURL,
 			"image_url": ar.ImageURL,
 			"index":     i,
@@ -76,8 +76,8 @@ func makeResponse(articles []Article) map[string]interface{} {
 }
 
 // backendでやったほうがいいかも
-func makeRedirectURL(s string) string {
-	return fmt.Sprintf("%s/v1/page?redirect_to=%s", common.BASE_URL, s)
+func makeRedirectURL(a Article) string {
+	return fmt.Sprintf("%s/v1/page?site_id=%d&redirect_to=%s", common.BASE_URL, a.SiteID, a.URL)
 }
 
 func InitHandler() {
