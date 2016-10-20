@@ -3,6 +3,7 @@ package article
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/guregu/kami"
 	"golang.org/x/net/context"
@@ -41,7 +42,8 @@ func articleHandler(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	referer, _ = common.NormalizeURL(referer)
 
 	// Get Articles related with designated article
-	articles := getArticles(ctx, siteID, articleID, referer)
+	// TODO: 記事取得に使うオプションたちは構造体にまとめる
+	articles := getArticles(ctx, siteID, articleID, referer, cookieUserID)
 
 	// Make Response
 	resp := makeResponse(articles, cookieUserID)
@@ -53,9 +55,28 @@ func articleHandler(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	fun(w, resp, 200)
 }
 
-func getArticles(ctx context.Context, siteID, articleID, referer string) []Article {
+func getIndex(ctx context.Context, siteID, referer, cookieUserID string) (*Index, int) {
+	lrl := GetLogicRatioList(ctx, siteID, referer)
+	cui, err := strconv.Atoi(cookieUserID)
+
+	// cookieUserIDが数字でない場合はランキングを出す
+	if err != nil {
+		return GetIndexRanking(ctx, siteID), -1
+	}
+
+	// cookieUserID % 100 が ratio 未満の場合はそのユーザグループに所属する
+	for _, lr := range *lrl {
+		if cui%100 < lr.Ratio {
+			return GetIndexRelated(ctx, siteID, referer, lr.UserGroupID), lr.UserGroupID
+		}
+	}
+
+	return GetIndexRanking(ctx, siteID), -1
+}
+
+func getArticles(ctx context.Context, siteID, articleID, referer, cookieUserID string) []Article {
 	// Get Related Artcile
-	index := GetIndexRelated(ctx, siteID, referer)
+	index, _ := getIndex(ctx, siteID, referer, cookieUserID)
 	if len(*index) < common.MinArticleLength {
 		index = GetIndexRanking(ctx, siteID)
 	}
