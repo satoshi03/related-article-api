@@ -19,6 +19,7 @@ type Element struct {
 
 type Article struct {
 	SiteID   int    `msgpack:"site_id"`
+	ID       int    `msgpack:"article_id"`
 	URL      string `msgpack:"url"`
 	Title    string `msgpack:"title"`
 	IconURL  string `msgpack:"icon_url"`
@@ -26,7 +27,7 @@ type Article struct {
 }
 
 func (i *Index) makeKey(siteID, articleID string) string {
-	return fmt.Sprintf("index:%s:%s", siteID, articleID)
+	return fmt.Sprintf("index:%s:%s:1", siteID, articleID)
 }
 
 func GetIndexRelated(ctx context.Context, siteID, articleURL string) *Index {

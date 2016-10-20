@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/guregu/kami"
+	"github.com/satoshi03/go/fluent"
 	"github.com/satoshi03/go/redis"
 	"golang.org/x/net/context"
 
@@ -22,6 +23,7 @@ func pageHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		common.Write404Response(w, map[string]interface{}{"message": "redirect url not found"})
 		return
 	}
+	cookieUserID := r.FormValue("cuid")
 
 	// Write Cookie
 
@@ -39,6 +41,17 @@ func pageHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 
 	body := fmt.Sprintf("redirect to %s soon...", redirectTo)
 	w.Write([]byte(body))
+
+	sendLog(ctx, siteID, redirectTo, cookieUserID)
+}
+
+func sendLog(ctx context.Context, siteID, redirectTo, cookieUserID string) {
+	log := map[string]interface{}{
+		"site_id":        siteID,
+		"redirect_to":    redirectTo,
+		"cookie_user_id": cookieUserID,
+	}
+	fluent.Send(ctx, common.CtxFluentKey, "article.click", log)
 }
 
 func InitHandler() {

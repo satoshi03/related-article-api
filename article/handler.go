@@ -7,6 +7,7 @@ import (
 	"github.com/guregu/kami"
 	"golang.org/x/net/context"
 
+	"github.com/satoshi03/go/fluent"
 	"github.com/satoshi03/related-article-api/common"
 )
 
@@ -22,6 +23,7 @@ func articleHandler(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	// Parse Request
 	siteID := r.FormValue("site_id")
 	articleID := r.FormValue("article_id")
+	cookieUserID := r.FormValue("cuid")
 
 	// Validate Request
 	if siteID == "" {
@@ -42,7 +44,10 @@ func articleHandler(ctx context.Context, w http.ResponseWriter, r *http.Request,
 	articles := getArticles(ctx, siteID, articleID, referer)
 
 	// Make Response
-	resp := makeResponse(articles)
+	resp := makeResponse(articles, cookieUserID)
+
+	// Log
+	sendLog(ctx, articles, referer, cookieUserID)
 
 	// Return Response
 	fun(w, resp, 200)
@@ -58,12 +63,12 @@ func getArticles(ctx context.Context, siteID, articleID, referer string) []Artic
 	return GetArticleInfo(ctx, *index, siteID)
 }
 
-func makeResponse(articles []Article) map[string]interface{} {
+func makeResponse(articles []Article, cuid string) map[string]interface{} {
 	ais := make([]map[string]interface{}, 0, len(articles))
 	for i, ar := range articles {
 		ai := map[string]interface{}{
 			"title":     ar.Title,
-			"url":       makeRedirectURL(ar),
+			"url":       makeRedirectURL(ar, cuid),
 			"icon_url":  ar.IconURL,
 			"image_url": ar.ImageURL,
 			"index":     i,
@@ -75,9 +80,21 @@ func makeResponse(articles []Article) map[string]interface{} {
 	}
 }
 
+func sendLog(ctx context.Context, articles []Article, referer, cookieUserID string) {
+	for i, ar := range articles {
+		ai := map[string]interface{}{
+			"article_id":     ar.ID,
+			"index":          i,
+			"referer":        referer,
+			"cookie_user_id": cookieUserID,
+		}
+		fluent.Send(ctx, common.CtxFluentKey, "article.get", ai)
+	}
+}
+
 // backendでやったほうがいいかも
-func makeRedirectURL(a Article) string {
-	return fmt.Sprintf("%s/v1/page?site_id=%d&redirect_to=%s", common.BASE_URL, a.SiteID, a.URL)
+func makeRedirectURL(a Article, cuid string) string {
+	return fmt.Sprintf("%s/v1/page?site_id=%d&redirect_to=%s&cuid=%s", common.BASE_URL, a.SiteID, a.URL, cuid)
 }
 
 func InitHandler() {
