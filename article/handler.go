@@ -43,13 +43,13 @@ func articleHandler(ctx context.Context, w http.ResponseWriter, r *http.Request,
 
 	// Get Articles related with designated article
 	// TODO: 記事取得に使うオプションたちは構造体にまとめる
-	articles := getArticles(ctx, siteID, articleID, referer, cookieUserID)
+	articles, userGroupID := getArticles(ctx, siteID, articleID, referer, cookieUserID)
 
 	// Make Response
 	resp := makeResponse(articles, cookieUserID)
 
 	// Log
-	sendLog(ctx, articles, referer, cookieUserID)
+	sendLog(ctx, articles, referer, cookieUserID, userGroupID)
 
 	// Return Response
 	fun(w, resp, 200)
@@ -74,14 +74,15 @@ func getIndex(ctx context.Context, siteID, referer, cookieUserID string) (*Index
 	return GetIndexRanking(ctx, siteID), -1
 }
 
-func getArticles(ctx context.Context, siteID, articleID, referer, cookieUserID string) []Article {
+func getArticles(ctx context.Context, siteID, articleID, referer, cookieUserID string) ([]Article, int) {
 	// Get Related Artcile
-	index, _ := getIndex(ctx, siteID, referer, cookieUserID)
+	index, ugid := getIndex(ctx, siteID, referer, cookieUserID)
 	if len(*index) < common.MinArticleLength {
 		index = GetIndexRanking(ctx, siteID)
+		ugid = -1
 	}
 	// Get Artcile Info
-	return GetArticleInfo(ctx, *index, siteID)
+	return GetArticleInfo(ctx, *index, siteID), ugid
 }
 
 func makeResponse(articles []Article, cuid string) map[string]interface{} {
@@ -101,13 +102,14 @@ func makeResponse(articles []Article, cuid string) map[string]interface{} {
 	}
 }
 
-func sendLog(ctx context.Context, articles []Article, referer, cookieUserID string) {
+func sendLog(ctx context.Context, articles []Article, referer, cookieUserID string, userGroupID int) {
 	for i, ar := range articles {
 		ai := map[string]interface{}{
 			"article_id":     ar.ID,
 			"index":          i,
 			"referer":        referer,
 			"cookie_user_id": cookieUserID,
+			"user_group_id":  userGroupID,
 		}
 		fluent.Send(ctx, common.CtxFluentKey, "article.get", ai)
 	}
