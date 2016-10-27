@@ -117,7 +117,7 @@ func sendLog(ctx context.Context, articles []Article, referer, cookieUserID stri
 
 // backendでやったほうがいいかも
 func makeRedirectURL(a Article, cuid string) string {
-	return fmt.Sprintf("%s/v1/page?site_id=%d&redirect_to=%s&cuid=%s", common.BASE_URL, a.SiteID, a.URL, cuid)
+	return fmt.Sprintf("%s/v1/page?site_id=%d&redirect_to=%s&cuid=%s&aid=%d", common.BASE_URL, a.SiteID, a.URL, cuid, a.ID)
 }
 
 func InitHandler() {

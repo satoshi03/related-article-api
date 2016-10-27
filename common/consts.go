@@ -10,5 +10,5 @@ const (
 	MaxArticleLength = 10
 
 	// Jsonp Call Back
-	JsonpNameSpace = `relatedArticles`
+	JsonpNameSpace = `window.tsunaarticle.related_article_callback`
 )

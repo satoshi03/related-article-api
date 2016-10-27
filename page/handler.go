@@ -18,6 +18,11 @@ func pageHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 		common.Write404Response(w, map[string]interface{}{"message": "site id not found"})
 		return
 	}
+	articleID := r.FormValue("aid")
+	if siteID == "" {
+		common.Write404Response(w, map[string]interface{}{"message": "aid not found"})
+		return
+	}
 	redirectTo := r.FormValue("redirect_to")
 	if redirectTo == "" {
 		common.Write404Response(w, map[string]interface{}{"message": "redirect url not found"})
@@ -42,14 +47,15 @@ func pageHandler(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	body := fmt.Sprintf("redirect to %s soon...", redirectTo)
 	w.Write([]byte(body))
 
-	sendLog(ctx, siteID, redirectTo, cookieUserID)
+	sendLog(ctx, siteID, redirectTo, cookieUserID, articleID)
 }
 
-func sendLog(ctx context.Context, siteID, redirectTo, cookieUserID string) {
+func sendLog(ctx context.Context, siteID, redirectTo, cookieUserID, articleID string) {
 	log := map[string]interface{}{
 		"site_id":        siteID,
 		"redirect_to":    redirectTo,
 		"cookie_user_id": cookieUserID,
+		"article_id":     articleID,
 	}
 	fluent.Send(ctx, common.CtxFluentKey, "article.click", log)
 }
